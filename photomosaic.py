@@ -1,6 +1,9 @@
+#!/usr/bin/python3
 from PIL import Image
 import os
 import math
+import cv2
+import numpy as np
 import pdb
 
 def import_samples(sample_path, tile_size, dataset={}):
@@ -61,7 +64,43 @@ def main():
     #pdb.set_trace()
     im = Image.open('sample_images/dino.jpg')
     image = cut_mosaic(im, 50, dataset)
-    image.save('output.png')
+    image.save('output.png') 
+
+def average_color(image):
+    return image.mean(axis=0).mean(axis=0)
+
+def dominant_color(image):
+    pass
+
+#TODO: figure out the bottom of the image edgecase
+def cut_mosaic_cv(image, tile_size):
+    height, width, channels = image.shape
+    hrz_tiles = int(math.floor(width/tile_size))
+    vrt_tiles = int(math.floor(height/tile_size))
+    hrz_remainder = width - hrz_tiles
+    vrt_remainder = height - vrt_tiles
+    print("start cutting")
+    for x in range(0, hrz_tiles-1):
+        for y in range(0, vrt_tiles-1):
+            top_l = x*tile_size 
+            top_r = x*tile_size + tile_size
+            bot_l = y*tile_size 
+            bot_r = y*tile_size + tile_size
+            tile = image[top_l:bot_l, top_l:top_r]
+            color = average_color(image).round()
+            #pdb.set_trace()
+            print(tile)
+            image[top_l:bot_l, top_l:top_r] = [int(color[0]), int(color[1]), int(color[2])]
+    print("cut")
+    pdb.set_trace()
+    cv2.imshow('mosaic', image)
+    cv2.waitKey(0)
+
+
+def cv_it_up():
+    im = cv2.imread('sample_images/dino.jpg')
+    cut_mosaic_cv(im, 50)
+    #pdb.set_trace()
 
 if __name__ == '__main__':
-    main()
+    cv_it_up()
